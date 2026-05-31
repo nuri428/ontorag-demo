@@ -147,7 +147,9 @@ LIMIT 5
   the schema's inverse relations correctly. The *data itself* is not lying.
 - **The contaminated LOT-0047 surfaces at rank #1.** If the ops team
   decides off this table alone, "quarantine LOT-0047" is a natural and
-  *correct* first move.
+  *correct* first move. Quantitatively: question 4's traceability
+  shows *that lot produced 12 products* → **10 of them (≈83%) failed**,
+  ~3× the 25.2% population average. A clearly anomalous lot signal.
 - But ranks 2–5 cluster at 8–9 failures each — quarantining a single
   lot won't catch the rest of the risk → motivates questions 3 and 5–9.
 
@@ -458,13 +460,18 @@ raw = await engine.do_query(
 
 **Interpretation:**
 
-- −0.20 = **the two interventions essentially add up**
-  (0.067 + 0.134 = 0.201).
-- This is because the two causal paths share no parent-child link in
-  the DAG — they're separate paths to the same effect node, so they
-  don't interfere.
+- Observed Δ −0.200 ≈ the sum of the two single interventions, 0.201
+  (= 0.067 + 0.134). So ***near-additive***, not exactly additive
+  (small 0.001 negative interaction — both paths feed the same child
+  node ProductDefect through nonlinear CPT cells, so a tiny coupling
+  remains).
+- The reason it's *nearly* additive at all is that the two causal paths
+  share no parent-child link in the DAG — they're separate paths to
+  the same effect node, so interference is small.
 - Operationally: "process gets you part of the way; supplier gets you
-  the rest" — if budget allows, do both for maximum effect.
+  the rest, approximately additively" — if budget allows, do both for
+  maximum effect (with the caveat that in domains where causal paths
+  *overlap*, the additivity assumption breaks).
 
 ---
 
@@ -705,7 +712,7 @@ status: closed
 | Q6 see(supplier=bad) | L2 | "posterior under observation" | "same as intervening?" |
 | Q7 do(supplier=good) | L3 R2 | "true effect of fixing supplier" | "what about this specific case?" |
 | Q8 do(pressure=normal) | L3 R2 | "true effect of fixing process" | "what about this specific case?" |
-| Q9 do(both) | L3 R2 | "additive effect" | "what about this specific case?" |
+| Q9 do(both) | L3 R2 | "near-additive effect" | "what about this specific case?" |
 | Q10 counterfactual | L3 R3 | "what-if for this exact product" | — |
 | Q11 Flow Pinpoint | Flow+L1 | "auto suspect lot" | — |
 | Q12 Flow Evaluate | Flow+L3 | "auto intervention recommendation" | — |

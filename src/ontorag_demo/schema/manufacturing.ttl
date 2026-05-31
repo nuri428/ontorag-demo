@@ -1,0 +1,171 @@
+# Manufacturing traceability TBox for the ontorag-demo.
+#
+# Models the entity types and relations from `ontorag_flow_demo_plan.md` §2:
+#   Supplier --supplies--> Lot --hasComponent--> Component
+#   Component --processedBy--> ProcessRun --atStep--> ProcessStep
+#   ProcessRun --produces--> Product --hasQC--> QCResult
+#
+# Process conditions on ProcessRun are intentionally DISCRETE (plan §2 design
+# decision) so the L2/L3 layer over pgmpy can consume them without binning.
+
+@prefix mfg:   <https://ontorag-demo.dev/manufacturing#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+mfg: a owl:Ontology ;
+    rdfs:label "ontorag-demo manufacturing TBox" ;
+    rdfs:comment "Synthetic supply-chain + process schema; backs the §2 traceability story." .
+
+#
+# Classes
+#
+
+mfg:Supplier a owl:Class ;
+    rdfs:label "Supplier" ;
+    rdfs:comment "Organisation that supplies raw lots." .
+
+mfg:Lot a owl:Class ;
+    rdfs:label "Lot" ;
+    rdfs:comment "Batch of raw material from a single supplier delivery." .
+
+mfg:Component a owl:Class ;
+    rdfs:label "Component" ;
+    rdfs:comment "Individual part drawn from a lot." .
+
+mfg:ProcessStep a owl:Class ;
+    rdfs:label "ProcessStep" ;
+    rdfs:comment "Definition of one manufacturing step (machining / assembly / pre-inspection)." .
+
+mfg:ProcessRun a owl:Class ;
+    rdfs:label "ProcessRun" ;
+    rdfs:comment "Single execution of a ProcessStep on one Component; carries the discrete process condition." .
+
+mfg:Product a owl:Class ;
+    rdfs:label "Product" ;
+    rdfs:comment "Finished good produced from a chain of ProcessRuns." .
+
+mfg:QCResult a owl:Class ;
+    rdfs:label "QCResult" ;
+    rdfs:comment "Pass/Fail verdict attached to a Product." .
+
+#
+# Object properties (with domains / ranges so ontorag's L1 traversal can use them)
+#
+
+mfg:supplies a owl:ObjectProperty ;
+    rdfs:label "supplies" ;
+    rdfs:domain mfg:Supplier ;
+    rdfs:range  mfg:Lot ;
+    owl:inverseOf mfg:suppliedBy .
+
+mfg:suppliedBy a owl:ObjectProperty ;
+    rdfs:label "suppliedBy" ;
+    rdfs:domain mfg:Lot ;
+    rdfs:range  mfg:Supplier ;
+    owl:inverseOf mfg:supplies .
+
+mfg:hasComponent a owl:ObjectProperty ;
+    rdfs:label "hasComponent" ;
+    rdfs:domain mfg:Lot ;
+    rdfs:range  mfg:Component ;
+    owl:inverseOf mfg:fromLot .
+
+mfg:fromLot a owl:ObjectProperty ;
+    rdfs:label "fromLot" ;
+    rdfs:domain mfg:Component ;
+    rdfs:range  mfg:Lot ;
+    owl:inverseOf mfg:hasComponent .
+
+mfg:processedBy a owl:ObjectProperty ;
+    rdfs:label "processedBy" ;
+    rdfs:domain mfg:Component ;
+    rdfs:range  mfg:ProcessRun .
+
+mfg:atStep a owl:ObjectProperty ;
+    rdfs:label "atStep" ;
+    rdfs:domain mfg:ProcessRun ;
+    rdfs:range  mfg:ProcessStep .
+
+mfg:produces a owl:ObjectProperty ;
+    rdfs:label "produces" ;
+    rdfs:domain mfg:ProcessRun ;
+    rdfs:range  mfg:Product ;
+    owl:inverseOf mfg:producedBy .
+
+mfg:producedBy a owl:ObjectProperty ;
+    rdfs:label "producedBy" ;
+    rdfs:domain mfg:Product ;
+    rdfs:range  mfg:ProcessRun ;
+    owl:inverseOf mfg:produces .
+
+mfg:hasQC a owl:ObjectProperty ;
+    rdfs:label "hasQC" ;
+    rdfs:domain mfg:Product ;
+    rdfs:range  mfg:QCResult .
+
+# Status flag set by ontorag-flow's QuarantineLot action (Stage 5 write-back).
+mfg:quarantined a owl:DatatypeProperty ;
+    rdfs:label "quarantined" ;
+    rdfs:domain mfg:Lot ;
+    rdfs:range  xsd:boolean .
+
+#
+# Data properties (discrete states — plan §2 design decision)
+#
+
+mfg:supplierId a owl:DatatypeProperty ;
+    rdfs:label "supplierId" ;
+    rdfs:domain mfg:Supplier ;
+    rdfs:range  xsd:string .
+
+mfg:lotId a owl:DatatypeProperty ;
+    rdfs:label "lotId" ;
+    rdfs:domain mfg:Lot ;
+    rdfs:range  xsd:string .
+
+mfg:componentId a owl:DatatypeProperty ;
+    rdfs:label "componentId" ;
+    rdfs:domain mfg:Component ;
+    rdfs:range  xsd:string .
+
+mfg:productId a owl:DatatypeProperty ;
+    rdfs:label "productId" ;
+    rdfs:domain mfg:Product ;
+    rdfs:range  xsd:string .
+
+mfg:stepName a owl:DatatypeProperty ;
+    rdfs:label "stepName" ;
+    rdfs:domain mfg:ProcessStep ;
+    rdfs:range  xsd:string .
+
+mfg:condition a owl:DatatypeProperty ;
+    rdfs:label "condition" ;
+    rdfs:domain mfg:ProcessRun ;
+    rdfs:range  xsd:string ;
+    rdfs:comment "Discrete state of the process condition recorded by this run (e.g., 'normal' / 'high' / 'low')." .
+
+mfg:verdict a owl:DatatypeProperty ;
+    rdfs:label "verdict" ;
+    rdfs:domain mfg:QCResult ;
+    rdfs:range  xsd:string ;
+    rdfs:comment "Either 'pass' or 'fail'." .
+
+#
+# Process step canonical instances (constants — schema-level enumeration).
+# Putting them in the TBox file lets Stage 3 reuse the same URIs without
+# inventing per-run step instances.
+#
+
+mfg:StepMachining a mfg:ProcessStep ;
+    rdfs:label "Machining" ;
+    mfg:stepName "machining" .
+
+mfg:StepAssembly a mfg:ProcessStep ;
+    rdfs:label "Assembly" ;
+    mfg:stepName "assembly" .
+
+mfg:StepInspection a mfg:ProcessStep ;
+    rdfs:label "Pre-inspection" ;
+    mfg:stepName "inspection" .

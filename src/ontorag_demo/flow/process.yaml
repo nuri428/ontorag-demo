@@ -1,0 +1,93 @@
+# Manufacturing-RCA process — drives a high-defect-rate case from
+#   alert → pinpoint suspect lot → score interventions → human approval
+#   → ABox write-back (quarantine) → counterfactual replay (close).
+#
+# The same YAML can be run under the RuleEngine (default) or — by setting
+# `engine: llm` and LLM_PROVIDER — under the LlmAgentEngine, exactly like
+# ontorag-flow/examples/supply_chain_rca/.
+
+process_uri: "urn:demo:manufacturing:process:rca"
+name: "Manufacturing high-defect-rate RCA"
+
+allowed_actions:
+  - "urn:demo:manufacturing:PinpointSuspectLot"
+  - "urn:demo:manufacturing:EvaluateIntervention"
+  - "urn:demo:manufacturing:RequestQuarantineApproval"
+  - "urn:demo:manufacturing:QuarantineLot"
+  - "urn:demo:manufacturing:CounterfactualReplay"
+
+# The case closes once the counterfactual replay has run and recorded its
+# verdict — that's the moment the RCA loop is closed.
+goal:
+  rca_complete: true
+
+initial_state:
+  # Populated by the alerting system (or, in this demo, by run_demo.py).
+  defect_rate_percent: 0
+  suspect_lot_known: false
+  causal_evaluation_done: false
+  approval_pending: false
+  quarantined: false
+  rca_complete: false
+
+# CMMN-style ordering: the case manager refuses to run an action whose
+# prerequisites are not in case history, even if a rule fires for it.
+constraints:
+  requires:
+    "urn:demo:manufacturing:EvaluateIntervention":
+      - "urn:demo:manufacturing:PinpointSuspectLot"
+    "urn:demo:manufacturing:RequestQuarantineApproval":
+      - "urn:demo:manufacturing:EvaluateIntervention"
+    "urn:demo:manufacturing:QuarantineLot":
+      - "urn:demo:manufacturing:RequestQuarantineApproval"
+    "urn:demo:manufacturing:CounterfactualReplay":
+      - "urn:demo:manufacturing:QuarantineLot"
+
+rules:
+  - name: "High defect rate — pinpoint suspect lot first"
+    when:
+      defect_rate_percent: { gte: 10 }
+      suspect_lot_known: false
+    then:
+      action: "urn:demo:manufacturing:PinpointSuspectLot"
+      params:
+        top_n: 5
+    confidence: 0.95
+    rationale: "Every RCA starts by narrowing scope with L1 traceability."
+
+  - name: "Suspect lot known — score causal interventions"
+    when:
+      suspect_lot_known: true
+      causal_evaluation_done: false
+    then:
+      action: "urn:demo:manufacturing:EvaluateIntervention"
+      params: {}
+    confidence: 0.95
+    rationale: "Once scope is narrowed, separate process from parts via do()."
+
+  - name: "Causal eval done — request human approval before write-back"
+    when:
+      causal_evaluation_done: true
+      approval_pending: false
+      quarantined: false
+    then:
+      action: "urn:demo:manufacturing:RequestQuarantineApproval"
+      params:
+        reason: "L3 evaluation recommends an intervention; lot quarantine requires sign-off."
+    confidence: 1.0
+    rationale: "Policy: any ABox write-back is human-gated."
+
+  # After human resume, the runner explicitly executes QuarantineLot with
+  # the suspect lot URI (the RuleEngine doesn't template params, so we
+  # mirror supply_chain_rca's "wrap-up after sign-off" pattern in runner.py
+  # rather than declaring a rule with an unfilled placeholder).
+
+  - name: "Quarantined — close the loop with a counterfactual replay"
+    when:
+      quarantined: true
+      rca_complete: false
+    then:
+      action: "urn:demo:manufacturing:CounterfactualReplay"
+      params: {}
+    confidence: 1.0
+    rationale: "Record the 'what if we had not intervened' answer for the audit trail."

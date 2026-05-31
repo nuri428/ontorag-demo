@@ -191,6 +191,15 @@ supplier failure count, but the gap to SUP-D is only 14 — too narrow
 for a confident "quarantine the top supplier" call. That's the gap the
 causal layer closes in Stage 4.
 
+> **A note on the heuristic attribution.** The categories in "Failures
+> by attributed cause" are *heuristic labels* assigned inside the
+> generator (the sampler picks the single *dominant* cause per
+> failure). So `contaminated_lot = 3` is *not the count of every
+> failure influenced by LOT-0047* — only the 3 where the lot's
+> standalone effect was dominant. LOT-0047's *total* failure count
+> shows up in 4a's traceability table as **10** (out of the 12
+> traceable products from that lot).
+
 ### Stage 4 — verify with ontorag
 
 ```bash
@@ -249,9 +258,12 @@ Sanity check — products traceable to LOT-0047
 **What to notice.** Every count matches the ground truth exactly,
 meaning the multi-hop SPARQL JOIN
 (`QCResult ← Product ← ProcessRun ← Component ← Lot ← Supplier`)
-walks the schema correctly. The contaminated lot surfaces at rank #1.
-The `assembly condition vs failures` table is *correlative only* — 110
-vs 41 looks like a smoking gun, but L1 can't prove it's causal.
+walks the schema correctly. The contaminated lot surfaces at rank #1
+— **10 of the 12 traceable products from that lot fail (≈83%), ~3×
+the population-wide 25.2% rate** (this is the *lot signal's
+strength*). The `assembly condition vs failures` table is
+*correlative only* — 110 vs 41 looks like a smoking gun, but L1
+can't prove it's causal.
 
 #### 4b) L2 posterior + L3 do() + counterfactual
 
@@ -275,6 +287,14 @@ uv run python scripts/04_run_causal.py
 
 **What to notice — the demo's punchline.**
 
+> **Two kinds of "baseline".** The table's `baseline (marginal) =
+> 0.265` is the **BN's marginal P(fail)** (computed by variable
+> elimination). Separately, the **observed rate in the synthetic data
+> is 25.2% (151/600)** — see the Stage 3 output. The two being close
+> is the *generator ↔ inference-model consistency check* (both share
+> the same CPTs, so alignment is automatic). All Δ values are against
+> the *model baseline of 0.265*.
+
 * `see(SupplierQuality=bad) = 0.467` makes SUP-B look like the obvious
   culprit. This is the **observational / L2** view.
 * `do(SupplierQuality=good)` only drops P(fail) by **0.07**.
@@ -282,7 +302,12 @@ uv run python scripts/04_run_causal.py
 * `do(AssemblyPressure=normal)` drops P(fail) by **0.13** — *almost
   twice as much* as the supplier intervention. **The process is the
   bigger lever.**
-* `do(both)` confirms additivity: 0.064 = a 20-point reduction.
+* `do(both)` is ***near-additive***: the observed −0.200 ≈ the sum of
+  the two single interventions (0.067 + 0.134 = 0.201). The two
+  causal paths aren't in a parent-child relationship on the DAG, so
+  they're nearly independent — *close to but not exactly additive*.
+  Operationally: "fix both and expect roughly the sum of their
+  effects" is the right intuition.
 * `counterfactual = 0.222` answers a *per-instance* question: "this
   specific product failed under low pressure — had pressure been
   normal, P(fail) would have been 22%". That's Pearl Rung 3, and no

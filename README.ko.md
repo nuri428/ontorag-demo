@@ -1,99 +1,95 @@
 # ontorag-demo
 
-> **🇰🇷 한국어 README:** [README.ko.md](./README.ko.md)
+> **🇺🇸 English README:** [README.md](./README.md)
 
-A synthetic manufacturing **traceability + causal-RCA** demo built on
-[`ontorag`](https://github.com/nuri428/ontorag) (Semantic + Dynamic
-reasoning) and [`ontorag-flow`](https://github.com/nuri428/ontorag-flow)
-(Kinetic / Adaptive Case Management).
+[`ontorag`](https://github.com/nuri428/ontorag) (Semantic + Dynamic 추론)와
+[`ontorag-flow`](https://github.com/nuri428/ontorag-flow)
+(Kinetic / Adaptive Case Management)를 결합한 **합성 제조 traceability +
+인과 RCA 데모**.
 
-The design rationale lives in [`ontorag_flow_demo_plan.md`](./ontorag_flow_demo_plan.md).
-This README is the **runbook + annotated output log** — every script's
-real output is captured below so you can read the demo end-to-end
-without running it.
+설계 의도는 [`ontorag_flow_demo_plan.md`](./ontorag_flow_demo_plan.md)에
+있고, 이 README는 **실행 매뉴얼 + 실제 출력 로그** 역할입니다. 모든
+스크립트의 실제 출력이 아래에 박혀 있어서, 직접 돌리지 않아도 데모를
+처음부터 끝까지 읽을 수 있습니다.
 
-Three companion documents go deeper:
+세 개의 보조 문서가 한층 깊이 들어갑니다:
 
-* **[docs/walkthrough.md](./docs/walkthrough.md)** — *"how each answer is
-  derived"* — 14 questions × (data, query, result, interpretation).
-* **[docs/implementation.md](./docs/implementation.md)** — *"why the code
-  looks the way it looks"* — 12 design decisions × (problem, options,
-  choice, code applied, validation).
-* **[docs/dev_guide.md](./docs/dev_guide.md)** — *"how to actually work
-  on this"* — 5 change recipes + change-impact matrix + extension
-  points + troubleshooting + dev cycle.
-
----
-
-## The story this demo tells
-
-A finished-goods QC pipeline shows a defect rate higher than operations
-expected. Two questions follow, and they are hard to answer *at the
-same time* without an ontology-aware reasoning stack:
-
-1. **Trace narrowly** — *which lots / suppliers / process runs* are
-   over-represented in the failing products? (L1, multi-hop SPARQL.)
-2. **Explain causally** — once scope is narrowed, is the dominant cause
-   *the parts* (supplier / lot quality) or *the process* (assembly-step
-   condition)? Naive aggregation conflates them; only
-   `do(SupplierQuality=good)` vs `do(AssemblyPressure=normal)`
-   separates them. (L3, Pearl Rung 2 + 3.)
-
-Then close the loop:
-
-3. **Act with audit** — propose → score interventions → human approval
-   → write `mfg:quarantined=true` back to ontorag's ABox →
-   counterfactual replay (`what if we had not quarantined?`) → PROV-O
-   activity log for forensic recall.
+* **[docs/walkthrough.ko.md](./docs/walkthrough.ko.md)** — *"각 답이 어떻게
+  도출되는가"* — 14개 질문 × (데이터, 쿼리, 결과, 해석).
+* **[docs/implementation.ko.md](./docs/implementation.ko.md)** — *"왜 코드가
+  이 모양이 되었나"* — 12개 설계 결정 × (문제, 옵션, 선택, 코드 적용, 검증).
+* **[docs/dev_guide.ko.md](./docs/dev_guide.ko.md)** — *"이 위에서 어떻게
+  작업하나"* — 5개 change recipes + 변경 영향 매트릭스 + 확장 포인트 +
+  troubleshooting + 개발 사이클.
 
 ---
 
-## Layout
+## 이 데모가 보여주는 이야기
+
+완제품 QC 파이프라인에서 운영팀이 예상한 것보다 높은 불량률이
+관측됐다고 합시다. 이때 두 가지 질문을 *동시에* 답하기가 어렵습니다 —
+온톨로지 기반 추론 스택 없이는:
+
+1. **좁히기 (traceability)** — 어떤 *로트 / 공급사 / 공정 런*이
+   불량 제품에 과대표상되는가? (L1, 다중홉 SPARQL)
+2. **인과로 설명하기** — 일단 범위가 좁혀지면, 진짜 원인이
+   *부품*(공급사 / 로트 품질)인가, *공정*(조립 단계 조건)인가?
+   단순 집계는 둘을 섞어버립니다. `do(SupplierQuality=good)` vs
+   `do(AssemblyPressure=normal)` 만이 갈라줍니다. (L3, Pearl Rung 2 + 3)
+
+그리고 마지막으로 루프를 닫습니다:
+
+3. **감사 가능한 행동** — 추천 → 개입안 점수화 → 운영자 승인 →
+   ontorag ABox에 `mfg:quarantined=true` write-back →
+   counterfactual replay ("격리 안 했으면 어땠을까?") →
+   PROV-O 활동 로그로 forensic 추적 가능.
+
+---
+
+## 구조
 
 ```
 ontorag-demo/
-├── ontorag_flow_demo_plan.md   # design rationale (read first)
-├── vendor/                     # local-only checkouts (gitignored)
-│   ├── ontorag/                # clone of https://github.com/nuri428/ontorag
-│   └── ontorag-flow/           # clone of https://github.com/nuri428/ontorag-flow
+├── ontorag_flow_demo_plan.md   # 설계 의도 (먼저 읽기)
+├── vendor/                     # 로컬 전용 clone (gitignored)
+│   ├── ontorag/                # https://github.com/nuri428/ontorag clone
+│   └── ontorag-flow/           # https://github.com/nuri428/ontorag-flow clone
 ├── src/ontorag_demo/
-│   ├── schema/                 # Stage 1 — OWL/Turtle TBox
-│   ├── causal/                 # Stage 2 — Bayesian network + Causal DAG
-│   ├── generator/              # Stage 3 — synthetic sampler + RDF writer
-│   ├── verify/                 # Stage 4 — SPARQL traceability + posterior/do/CF
-│   └── flow/                   # Stage 5 — actions + process YAML + runner
-├── scripts/                    # Numbered entry points (run in order)
+│   ├── schema/                 # 1단계 — OWL/Turtle TBox
+│   ├── causal/                 # 2단계 — Bayesian network + Causal DAG
+│   ├── generator/              # 3단계 — 합성 sampler + RDF writer
+│   ├── verify/                 # 4단계 — SPARQL traceability + posterior/do/CF
+│   └── flow/                   # 5단계 — 액션 + process YAML + runner
+├── scripts/                    # 번호순으로 실행
 │   ├── 01_generate_data.py
 │   ├── 02_load_ontorag.py
 │   ├── 03_run_trace.py
 │   ├── 04_run_causal.py
 │   └── 05_run_flow.py
 ├── tests/
-├── data/generated/             # produced by 01 (gitignored)
-└── runs/flow/                  # produced by 05 (gitignored)
+├── data/generated/             # 01이 생성 (gitignored)
+└── runs/flow/                  # 05가 생성 (gitignored)
 ```
 
 ---
 
-## Prerequisites
+## 사전 준비
 
-* Python 3.12+ and [`uv`](https://docs.astral.sh/uv/) (`brew install uv`).
-* A running Fuseki at `FUSEKI_URL` (default `http://localhost:3030`)
-  with a dataset named in `FUSEKI_DATASET` (default `ontorag`). Two ways:
+* Python 3.12+ 와 [`uv`](https://docs.astral.sh/uv/) (`brew install uv`).
+* `FUSEKI_URL`(기본 `http://localhost:3030`)에서 동작 중인 Fuseki,
+  데이터셋 이름은 `FUSEKI_DATASET`(기본 `ontorag`). 두 가지 방법:
 
   ```bash
-  # A) Reuse ontorag's compose (pre-tested combo).
+  # A) ontorag의 compose 재활용 (검증된 조합).
   cd vendor/ontorag && docker compose up -d
 
-  # B) Or run any Fuseki 5.x image yourself on :3030 with dataset "ontorag".
+  # B) 직접 Fuseki 5.x 이미지를 :3030에 dataset "ontorag"으로 띄우기.
   ```
 
-  The demo isolates itself under the named-graph scope
-  `manufacturing-demo`, so it won't collide with whatever else lives in
-  that Fuseki.
+  데모는 `manufacturing-demo` 라는 named-graph 스코프로 격리되므로
+  같은 Fuseki에 다른 데이터가 있어도 충돌하지 않습니다.
 
-* **Local vendor checkouts.** `vendor/` is gitignored; bootstrap it
-  manually:
+* **로컬 vendor clone.** `vendor/`는 gitignored 라서 직접 받아야 합니다:
 
   ```bash
   mkdir -p vendor
@@ -101,57 +97,56 @@ ontorag-demo/
   git clone https://github.com/nuri428/ontorag-flow.git  vendor/ontorag-flow
   ```
 
-  `pyproject.toml`'s `[tool.uv.sources]` already points editable
-  installs at those paths.
+  `pyproject.toml`의 `[tool.uv.sources]`가 이미 위 경로를 editable
+  install로 가리킵니다.
 
-* Install deps:
+* 의존성 설치:
 
   ```bash
   uv sync --extra dev
-  cp .env.example .env       # optional — defaults are fine on :3030
+  cp .env.example .env       # 선택 — :3030이면 기본값으로 OK
   ```
 
 ---
 
-## Five-stage walkthrough (with real output)
+## 5단계 워크스루 (실제 출력 포함)
 
-### Stage 1 — schema (TBox, no script)
+### 1단계 — 스키마 (TBox, 실행 스크립트 없음)
 
-`src/ontorag_demo/schema/manufacturing.ttl` defines **7 classes** and
-**12 properties**. The single design choice worth highlighting:
-process conditions live on `ProcessRun` as **discrete `mfg:condition`
-strings**, so pgmpy consumes them directly without a binning
-preprocessor (plan §2).
+`src/ontorag_demo/schema/manufacturing.ttl`이 **7개 클래스**와 **12개
+프로퍼티**를 정의합니다. 한 가지 강조할 설계 결정: 공정 조건을
+`ProcessRun`에 **이산 `mfg:condition` 문자열**로 둡니다. 그래야
+pgmpy가 별도 binning 전처리 없이 그대로 소비할 수 있습니다 (플랜 §2).
 
 ```turtle
 mfg:ProcessRun a owl:Class .
 mfg:condition  a owl:DatatypeProperty ;
     rdfs:domain mfg:ProcessRun ;
-    rdfs:range  xsd:string .   # values: "normal" | "high" | "low"
+    rdfs:range  xsd:string .   # 값: "normal" | "high" | "low"
 ```
 
-### Stage 2 — Bayesian network + Causal DAG (no script)
+### 2단계 — Bayesian network + Causal DAG (실행 스크립트 없음)
 
-`src/ontorag_demo/causal/model.py` is a **single source of truth** that
-quantifies the data generator (Stage 3) *and* feeds ontorag's
-`BayesianEngine` / `CausalEngine` (Stage 4). 7 nodes, one interaction,
-two independent process-noise variables:
+`src/ontorag_demo/causal/model.py`가 **단일 source of truth** 입니다.
+3단계의 데이터 생성기를 정량화하면서, 동시에 4단계의 ontorag
+`BayesianEngine` / `CausalEngine`에도 들어갑니다. 7개 노드, 하나의
+상호작용, 두 개의 독립 공정 노이즈 변수:
 
 ```
 SupplierQuality ─→ LotQuality ─→ ComponentQuality ─┐
                                                    ├─→ ProductDefect
                   AssemblyPressure ────────────────┘
-MachiningTemperature   (noise — independent)
-InspectionMoisture     (noise — independent)
+MachiningTemperature   (노이즈 — 독립)
+InspectionMoisture     (노이즈 — 독립)
 ```
 
-### Stage 3 — generate synthetic data
+### 3단계 — 합성 데이터 생성
 
 ```bash
 uv run python scripts/01_generate_data.py
 ```
 
-**Real output:**
+**실제 출력:**
 
 ```text
 ────────────────────────────── Generation summary ──────────────────────────────
@@ -185,13 +180,12 @@ suspect supplier: SUP-B   contaminated lot: LOT-0047
   └──────────┴──────────┘
 ```
 
-**What to notice.** The most frequent attributed cause is
-`process_only` (66 failures) — *not* the supplier. SUP-B is #1 by
-supplier failure count, but the gap to SUP-D is only 14 — too narrow
-for a confident "quarantine the top supplier" call. That's the gap the
-causal layer closes in Stage 4.
+**주목할 점.** 가장 빈도 높은 원인은 `process_only`(66건) — *공급사가
+아님*. SUP-B가 공급사별 실패 카운트 1위이지만, SUP-D와의 격차가 14건
+밖에 안 됩니다. "1위 공급사 격리"라고 자신 있게 부를 수 있는 격차가
+아니죠. 이 간극을 4단계의 인과 레이어가 닫습니다.
 
-### Stage 4 — verify with ontorag
+### 4단계 — ontorag 단독 검증
 
 ```bash
 uv run python scripts/02_load_ontorag.py   # schema + ABox + BN + Causal → Fuseki
@@ -242,16 +236,16 @@ uv run python scripts/03_run_trace.py
 │ normal             │       41 │
 └────────────────────┴──────────┘
 
-Sanity check — products traceable to LOT-0047
-  12 products: PRD-00047, PRD-00097, PRD-00147, PRD-00197, PRD-00247, PRD-00297, ...
+Sanity check — LOT-0047에서 추적되는 제품
+  12개 제품: PRD-00047, PRD-00097, PRD-00147, PRD-00197, PRD-00247, PRD-00297, ...
 ```
 
-**What to notice.** Every count matches the ground truth exactly,
-meaning the multi-hop SPARQL JOIN
-(`QCResult ← Product ← ProcessRun ← Component ← Lot ← Supplier`)
-walks the schema correctly. The contaminated lot surfaces at rank #1.
-The `assembly condition vs failures` table is *correlative only* — 110
-vs 41 looks like a smoking gun, but L1 can't prove it's causal.
+**주목할 점.** 모든 카운트가 ground truth와 정확히 일치합니다. 즉
+다중홉 SPARQL JOIN
+(`QCResult ← Product ← ProcessRun ← Component ← Lot ← Supplier`)이
+스키마를 제대로 따라간다는 증거입니다. 오염된 LOT-0047이 1위로 떠오릅니다.
+`조립 조건 vs 실패` 표는 *상관일 뿐* — 110 vs 41이 결정적으로 보이지만,
+L1만으로는 인과를 증명할 수 없습니다.
 
 #### 4b) L2 posterior + L3 do() + counterfactual
 
@@ -273,22 +267,21 @@ uv run python scripts/04_run_causal.py
 └──────────────────────────────────────────┴─────────┴───────────────┘
 ```
 
-**What to notice — the demo's punchline.**
+**주목할 점 — 이 데모의 결정타.**
 
-* `see(SupplierQuality=bad) = 0.467` makes SUP-B look like the obvious
-  culprit. This is the **observational / L2** view.
-* `do(SupplierQuality=good)` only drops P(fail) by **0.07**.
-  Intervention is much weaker than the correlation suggested.
-* `do(AssemblyPressure=normal)` drops P(fail) by **0.13** — *almost
-  twice as much* as the supplier intervention. **The process is the
-  bigger lever.**
-* `do(both)` confirms additivity: 0.064 = a 20-point reduction.
-* `counterfactual = 0.222` answers a *per-instance* question: "this
-  specific product failed under low pressure — had pressure been
-  normal, P(fail) would have been 22%". That's Pearl Rung 3, and no
-  L1/L2 query can produce it.
+* `see(SupplierQuality=bad) = 0.467` 이라서 SUP-B가 명백한 범인처럼
+  보입니다. 이것이 **관찰적 / L2** 시각입니다.
+* `do(SupplierQuality=good)`로 개입하면 P(fail)이 **0.07**만 떨어집니다.
+  상관이 시사한 것보다 개입 효과가 훨씬 약합니다.
+* `do(AssemblyPressure=normal)`은 P(fail)을 **0.13** 떨어뜨립니다 —
+  공급사 개입의 *거의 2배*. **공정이 더 큰 지렛대**입니다.
+* `do(both)`이 가법성을 확인해줍니다: 0.064 = 20%p 감소.
+* `counterfactual = 0.222`는 *인스턴스 단위* 질문에 답합니다: "이
+  특정 제품이 낮은 압력에서 실패했다. 압력이 정상이었다면 실패 확률이
+  22% 였을 것이다". 이게 Pearl Rung 3이고, L1/L2 쿼리로는 절대
+  생성할 수 없는 답입니다.
 
-### Stage 5 — close the loop with ontorag-flow
+### 5단계 — ontorag-flow로 루프 닫기
 
 ```bash
 uv run python scripts/05_run_flow.py
@@ -338,7 +331,7 @@ opened urn:ontorag-flow:case:<uuid> with defect rate 25%
 
 PROV-O Turtle export: runs/flow/audit.ttl (6860 bytes)
 
-──────────────────────────── Final case state ──────────────────────────────────
+──────────────────────────── 최종 케이스 상태 ──────────────────────────────────
   rca_complete: True
   quarantined: True
   quarantined_lot_uri: https://ontorag-demo.dev/manufacturing#lot/LOT-0047
@@ -351,7 +344,7 @@ PROV-O Turtle export: runs/flow/audit.ttl (6860 bytes)
   counterfactual_p_fail: 0.2222
 ```
 
-#### Verify the write-back actually landed in ontorag
+#### Write-back이 실제로 ontorag에 반영됐는지 확인
 
 ```bash
 curl -s 'http://localhost:3030/ontorag/sparql' \
@@ -372,36 +365,35 @@ curl -s 'http://localhost:3030/ontorag/sparql' \
 }
 ```
 
-The triple wrote back is visible to *any* downstream SPARQL consumer —
-that's the "closed loop" half of plan §6.
+이 한 줄이 추가된 트리플이 *어떤* downstream SPARQL 소비자에게도
+보인다는 증거입니다 — 플랜 §6의 "closed loop" 반쪽이 완성된 거죠.
 
 ---
 
-## Plan §6 component coverage
+## 플랜 §6 부품 매핑
 
-| `ontorag` / `ontorag-flow` capability | Where the demo exercises it | Visible in output |
+| `ontorag` / `ontorag-flow` 부품 | 데모에서 실제로 호출되는 곳 | 출력에서 보이는 자취 |
 |---|---|---|
-| L0 storage (Fuseki/Neo4j/FalkorDB) | `02_load_ontorag.py` via `create_store()` | `TBox → 109 triples` line |
-| L1 logic (multi-hop traversal) | `verify/trace.py` SPARQL JOINs | Stage 4a tables |
-| L2 probabilistic (`compute_posterior`) | `verify/causal.py::observational_supplier_bad` | `see(SupplierQuality=bad) = 0.467` |
-| L3 interventional (`do_query`) | `verify/causal.py::do_*` | `do(...) [L3]` rows |
-| L3 counterfactual | `verify/causal.py::counterfactual_assembly_was_normal` | `counterfactual: 0.222` |
-| Decision engine (6 kinds) | `flow/process.yaml` RuleEngine (4 rules + 4 `requires` constraints) | "#1..#3 picks" log lines |
-| Case + state machine + saga | `flow/runner.py` via `CaseManager` | `open → suspended → open → closed` lifecycle |
-| Provenance (PROV-O) | exported to `runs/flow/audit.ttl` | "PROV-O activities" table |
-| Write-back (`AssertTriple`-equivalent) | `flow/writeback.py` SPARQL UPDATE | `LOT-0047` returned from the verify curl |
+| L0 저장소 (Fuseki/Neo4j/FalkorDB) | `02_load_ontorag.py`의 `create_store()` | `TBox → 109 triples` 줄 |
+| L1 논리 (다중홉 순회) | `verify/trace.py`의 SPARQL JOIN | 4a의 표들 |
+| L2 확률 (`compute_posterior`) | `verify/causal.py::observational_supplier_bad` | `see(SupplierQuality=bad) = 0.467` |
+| L3 개입 (`do_query`) | `verify/causal.py::do_*` | `do(...) [L3]` 행 |
+| L3 반사실 | `verify/causal.py::counterfactual_assembly_was_normal` | `counterfactual: 0.222` |
+| 결정 엔진 (6종) | `flow/process.yaml`의 RuleEngine (4 rule + 4 `requires`) | "#1..#3 picks" 로그 |
+| Case + 상태머신 + saga | `flow/runner.py`의 `CaseManager` | `open → suspended → open → closed` 라이프사이클 |
+| Provenance (PROV-O) | `runs/flow/audit.ttl`로 export | "PROV-O activities" 표 |
+| write-back (`AssertTriple` 대체) | `flow/writeback.py`의 SPARQL UPDATE | 검증 curl이 돌려준 `LOT-0047` |
 
-The intentional deviation from plan §6: the demo bypasses
-ontorag-flow's MCP client and calls ontorag's Python API directly
-inside the custom actions, so a single `uv run` driver runs the whole
-loop without spinning up two HTTP services. Swapping back to the MCP
-transport means replacing the constructor in
-`flow/actions.py::build_domain_actions` with `ontorag_flow`'s
-`with_triple_actions(client)`.
+플랜 §6과 의도적으로 다른 한 가지: 데모는 ontorag-flow의 MCP 클라이언트를
+우회하고, 커스텀 액션 안에서 ontorag의 Python API를 직접 호출합니다.
+덕분에 두 개의 HTTP 서비스를 띄울 필요 없이 단일 `uv run`으로 전체
+루프가 돌아갑니다. MCP 전송 방식으로 되돌리려면
+`flow/actions.py::build_domain_actions`의 생성자를 ontorag-flow의
+`with_triple_actions(client)`로 교체하면 됩니다.
 
 ---
 
-## Tests
+## 테스트
 
 ```bash
 uv run pytest -q
@@ -412,13 +404,12 @@ uv run pytest -q
 11 passed, 1 warning in 5.01s
 ```
 
-11 tests cover BN/Causal invariants (CPT row sums, DAG edge mirroring),
-the data generator's determinism + contamination signal, and the
-"process > supplier" claim at the engine level. None of them need
-Fuseki.
+테스트 11개가 BN/Causal 불변(CPT 행 합, DAG 엣지 미러링), 데이터
+생성기의 결정성 + 오염 신호, 그리고 "공정 > 공급사" 주장을 엔진
+수준에서 검증합니다. 모두 Fuseki 없이 돕니다.
 
 ---
 
-## License
+## 라이선스
 
 MIT.

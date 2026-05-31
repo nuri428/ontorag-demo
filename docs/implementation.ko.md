@@ -1,7 +1,7 @@
 # 구현 노트 — 문제풀이 과정과 코드 적용
 
 > **🇺🇸 English:** [implementation.md](./implementation.md)
-> **연관 문서:** [walkthrough.ko.md](./walkthrough.ko.md) (답 도출 과정) · [README.ko.md](../README.ko.md) (실행 매뉴얼)
+> **연관 문서:** [walkthrough.ko.md](./walkthrough.ko.md) (답 도출 과정) · [dev_guide.ko.md](./dev_guide.ko.md) (이 위에서 작업하기) · [README.ko.md](../README.ko.md) (실행 매뉴얼)
 
 이 문서는 `walkthrough.ko.md` 한 단계 위의 메타입니다.
 walkthrough가 *"답에 어떻게 도달하는가"* 였다면, 여기는

@@ -1,7 +1,7 @@
 # Implementation notes — problem-solving process and how the code was shaped
 
 > **🇰🇷 한국어:** [implementation.ko.md](./implementation.ko.md)
-> **Related:** [walkthrough.md](./walkthrough.md) (how each answer is derived) · [README.md](../README.md) (runbook)
+> **Related:** [walkthrough.md](./walkthrough.md) (how each answer is derived) · [dev_guide.md](./dev_guide.md) (working on top of this) · [README.md](../README.md) (runbook)
 
 This document sits one layer above `walkthrough.md`.
 Where walkthrough covered *"how the answer is derived"*, this one

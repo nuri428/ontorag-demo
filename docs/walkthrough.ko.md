@@ -2,6 +2,7 @@
 
 > **🇺🇸 English:** [walkthrough.md](./walkthrough.md)
 > **상위 README:** [README.ko.md](../README.ko.md)
+> **자매 문서:** [implementation.ko.md](./implementation.ko.md) (코드 설계 결정) · [dev_guide.ko.md](./dev_guide.ko.md) (이 위에서 작업하기)
 
 이 문서는 README의 "무엇이 나오는가"를 한 발 더 깊이 들어가서,
 **각 질문에 어떻게 답을 도출했는지** 를 단계별로 보여줍니다.

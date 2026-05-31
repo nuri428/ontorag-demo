@@ -2,6 +2,7 @@
 
 > **🇰🇷 한국어:** [walkthrough.ko.md](./walkthrough.ko.md)
 > **Parent README:** [README.md](../README.md)
+> **Sibling docs:** [implementation.md](./implementation.md) (code design decisions) · [dev_guide.md](./dev_guide.md) (working on top of this)
 
 This document goes one step deeper than the README's "what comes out"
 view, into **how each question's answer is actually derived** — what

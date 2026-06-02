@@ -1,0 +1,119 @@
+site_name: ontorag-demo
+site_description: >-
+  Synthetic manufacturing traceability + causal-RCA demo built on
+  ontorag (Semantic + Dynamic) and ontorag-flow (Kinetic / ACM).
+site_url: https://nuri428.github.io/ontorag-demo/
+site_author: nuri428
+
+repo_name: nuri428/ontorag-demo
+repo_url: https://github.com/nuri428/ontorag-demo
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - navigation.tracking
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.action.edit
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: ko
+          name: 한국어
+          build: true
+          nav_translations:
+            Home: 홈
+            Walkthrough: 워크스루
+            Implementation: 구현 노트
+            Developer guide: 개발 가이드
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      base_path:
+        - .
+      check_paths: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+nav:
+  - Home: index.md
+  - Walkthrough: walkthrough.md
+  - Implementation: implementation.md
+  - Developer guide: dev_guide.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/nuri428/ontorag-demo
+  generator: false
+
+# Keep build forgiving — vendored docs and GitHub-style relative links may
+# point outside the docs/ tree. Warn rather than fail so the site still
+# builds while we tighten cross-references over time.
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn

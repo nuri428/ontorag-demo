@@ -37,6 +37,9 @@ data/fuseki/
 runs/
 *.db
 
+# MkDocs build output
+site/
+
 # Vendor checkouts are user-local (see README "Prerequisites").
 vendor/
 .gitmodules

@@ -8,7 +8,7 @@ license = { text = "MIT" }
 authors = [{ name = "Jaeho Kang", email = "greennuri@gmail.com" }]
 
 dependencies = [
-    # Submodule-backed editable installs (see [tool.uv.sources]).
+    # Sibling-repo editable installs (see [tool.uv.sources] + scripts/bootstrap.sh).
     "ontorag[bayes]",
     "ontorag-flow",
     # Demo-only direct dependencies.
@@ -29,8 +29,8 @@ dev = [
 ]
 
 [tool.uv.sources]
-ontorag = { path = "vendor/ontorag", editable = true }
-ontorag-flow = { path = "vendor/ontorag-flow", editable = true }
+ontorag = { path = "../ontorag", editable = true }
+ontorag-flow = { path = "../ontorag-flow", editable = true }
 
 [build-system]
 requires = ["hatchling"]

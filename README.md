@@ -51,26 +51,27 @@ Then close the loop:
 ## Layout
 
 ```
-ontorag-demo/
-├── ontorag_flow_demo_plan.md   # design rationale (read first)
-├── vendor/                     # local-only checkouts (gitignored)
-│   ├── ontorag/                # clone of https://github.com/nuri428/ontorag
-│   └── ontorag-flow/           # clone of https://github.com/nuri428/ontorag-flow
-├── src/ontorag_demo/
-│   ├── schema/                 # Stage 1 — OWL/Turtle TBox
-│   ├── causal/                 # Stage 2 — Bayesian network + Causal DAG
-│   ├── generator/              # Stage 3 — synthetic sampler + RDF writer
-│   ├── verify/                 # Stage 4 — SPARQL traceability + posterior/do/CF
-│   └── flow/                   # Stage 5 — actions + process YAML + runner
-├── scripts/                    # Numbered entry points (run in order)
-│   ├── 01_generate_data.py
-│   ├── 02_load_ontorag.py
-│   ├── 03_run_trace.py
-│   ├── 04_run_causal.py
-│   └── 05_run_flow.py
-├── tests/
-├── data/generated/             # produced by 01 (gitignored)
-└── runs/flow/                  # produced by 05 (gitignored)
+<parent>/                       # any directory holding the three sibling repos
+├── ontorag/                    # clone of https://github.com/nuri428/ontorag
+├── ontorag-flow/               # clone of https://github.com/nuri428/ontorag-flow
+└── ontorag-demo/               # this repo
+    ├── ontorag_flow_demo_plan.md   # design rationale (read first)
+    ├── src/ontorag_demo/
+    │   ├── schema/                 # Stage 1 — OWL/Turtle TBox
+    │   ├── causal/                 # Stage 2 — Bayesian network + Causal DAG
+    │   ├── generator/              # Stage 3 — synthetic sampler + RDF writer
+    │   ├── verify/                 # Stage 4 — SPARQL traceability + posterior/do/CF
+    │   └── flow/                   # Stage 5 — actions + process YAML + runner
+    ├── scripts/                    # Numbered entry points (run in order)
+    │   ├── bootstrap.sh            # clones the sibling repos above if missing
+    │   ├── 01_generate_data.py
+    │   ├── 02_load_ontorag.py
+    │   ├── 03_run_trace.py
+    │   ├── 04_run_causal.py
+    │   └── 05_run_flow.py
+    ├── tests/
+    ├── data/generated/             # produced by 01 (gitignored)
+    └── runs/flow/                  # produced by 05 (gitignored)
 ```
 
 ---
@@ -83,7 +84,7 @@ ontorag-demo/
 
   ```bash
   # A) Reuse ontorag's compose (pre-tested combo).
-  cd vendor/ontorag && docker compose up -d
+  cd ../ontorag && docker compose up -d
 
   # B) Or run any Fuseki 5.x image yourself on :3030 with dataset "ontorag".
   ```
@@ -92,17 +93,17 @@ ontorag-demo/
   `manufacturing-demo`, so it won't collide with whatever else lives in
   that Fuseki.
 
-* **Local vendor checkouts.** `vendor/` is gitignored; bootstrap it
-  manually:
+* **Sibling framework checkouts.** `ontorag` and `ontorag-flow` are
+  consumed as editable installs from the directories *next to* this
+  repo (`../ontorag`, `../ontorag-flow`), so framework edits are
+  picked up by the demo immediately. Clone them with:
 
   ```bash
-  mkdir -p vendor
-  git clone https://github.com/nuri428/ontorag.git       vendor/ontorag
-  git clone https://github.com/nuri428/ontorag-flow.git  vendor/ontorag-flow
+  ./scripts/bootstrap.sh   # no-op for repos that already exist
   ```
 
   `pyproject.toml`'s `[tool.uv.sources]` already points editable
-  installs at those paths.
+  installs at those sibling paths.
 
 * Install deps:
 

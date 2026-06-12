@@ -1091,7 +1091,7 @@ wheels = [
 [[package]]
 name = "ontorag"
 version = "1.1.1"
-source = { editable = "vendor/ontorag" }
+source = { editable = "../ontorag" }
 dependencies = [
     { name = "anthropic" },
     { name = "fastapi", extra = ["standard"] },
@@ -1188,8 +1188,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ontorag", extras = ["bayes"], editable = "vendor/ontorag" },
-    { name = "ontorag-flow", editable = "vendor/ontorag-flow" },
+    { name = "ontorag", extras = ["bayes"], editable = "../ontorag" },
+    { name = "ontorag-flow", editable = "../ontorag-flow" },
     { name = "pgmpy", specifier = ">=0.1.25" },
     { name = "pydantic", specifier = ">=2.7" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
@@ -1206,7 +1206,7 @@ provides-extras = ["dev"]
 [[package]]
 name = "ontorag-flow"
 version = "0.1.0"
-source = { editable = "vendor/ontorag-flow" }
+source = { editable = "../ontorag-flow" }
 dependencies = [
     { name = "aiosqlite" },
     { name = "fastapi" },

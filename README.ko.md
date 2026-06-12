@@ -49,26 +49,27 @@
 ## 구조
 
 ```
-ontorag-demo/
-├── ontorag_flow_demo_plan.md   # 설계 의도 (먼저 읽기)
-├── vendor/                     # 로컬 전용 clone (gitignored)
-│   ├── ontorag/                # https://github.com/nuri428/ontorag clone
-│   └── ontorag-flow/           # https://github.com/nuri428/ontorag-flow clone
-├── src/ontorag_demo/
-│   ├── schema/                 # 1단계 — OWL/Turtle TBox
-│   ├── causal/                 # 2단계 — Bayesian network + Causal DAG
-│   ├── generator/              # 3단계 — 합성 sampler + RDF writer
-│   ├── verify/                 # 4단계 — SPARQL traceability + posterior/do/CF
-│   └── flow/                   # 5단계 — 액션 + process YAML + runner
-├── scripts/                    # 번호순으로 실행
-│   ├── 01_generate_data.py
-│   ├── 02_load_ontorag.py
-│   ├── 03_run_trace.py
-│   ├── 04_run_causal.py
-│   └── 05_run_flow.py
-├── tests/
-├── data/generated/             # 01이 생성 (gitignored)
-└── runs/flow/                  # 05가 생성 (gitignored)
+<parent>/                       # 세 자매 repo를 나란히 담는 임의의 디렉토리
+├── ontorag/                    # https://github.com/nuri428/ontorag clone
+├── ontorag-flow/               # https://github.com/nuri428/ontorag-flow clone
+└── ontorag-demo/               # 이 repo
+    ├── ontorag_flow_demo_plan.md   # 설계 의도 (먼저 읽기)
+    ├── src/ontorag_demo/
+    │   ├── schema/                 # 1단계 — OWL/Turtle TBox
+    │   ├── causal/                 # 2단계 — Bayesian network + Causal DAG
+    │   ├── generator/              # 3단계 — 합성 sampler + RDF writer
+    │   ├── verify/                 # 4단계 — SPARQL traceability + posterior/do/CF
+    │   └── flow/                   # 5단계 — 액션 + process YAML + runner
+    ├── scripts/                    # 번호순으로 실행
+    │   ├── bootstrap.sh            # 위 자매 repo가 없으면 clone
+    │   ├── 01_generate_data.py
+    │   ├── 02_load_ontorag.py
+    │   ├── 03_run_trace.py
+    │   ├── 04_run_causal.py
+    │   └── 05_run_flow.py
+    ├── tests/
+    ├── data/generated/             # 01이 생성 (gitignored)
+    └── runs/flow/                  # 05가 생성 (gitignored)
 ```
 
 ---
@@ -81,7 +82,7 @@ ontorag-demo/
 
   ```bash
   # A) ontorag의 compose 재활용 (검증된 조합).
-  cd vendor/ontorag && docker compose up -d
+  cd ../ontorag && docker compose up -d
 
   # B) 직접 Fuseki 5.x 이미지를 :3030에 dataset "ontorag"으로 띄우기.
   ```
@@ -89,15 +90,16 @@ ontorag-demo/
   데모는 `manufacturing-demo` 라는 named-graph 스코프로 격리되므로
   같은 Fuseki에 다른 데이터가 있어도 충돌하지 않습니다.
 
-* **로컬 vendor clone.** `vendor/`는 gitignored 라서 직접 받아야 합니다:
+* **자매 프레임워크 clone.** `ontorag`과 `ontorag-flow`는 이 repo
+  *옆 디렉토리*(`../ontorag`, `../ontorag-flow`)에서 editable install로
+  참조되므로, 프레임워크를 수정하면 demo에 즉시 반영됩니다. 다음으로
+  받아두세요:
 
   ```bash
-  mkdir -p vendor
-  git clone https://github.com/nuri428/ontorag.git       vendor/ontorag
-  git clone https://github.com/nuri428/ontorag-flow.git  vendor/ontorag-flow
+  ./scripts/bootstrap.sh   # 이미 있는 repo는 건너뜀
   ```
 
-  `pyproject.toml`의 `[tool.uv.sources]`가 이미 위 경로를 editable
+  `pyproject.toml`의 `[tool.uv.sources]`가 이미 위 자매 경로를 editable
   install로 가리킵니다.
 
 * 의존성 설치:
